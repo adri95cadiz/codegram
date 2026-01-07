@@ -1,88 +1,67 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { api } from "@/trpc/react";
-import { IdeaCard } from "./IdeaCard";
-import { ProjectPulseCard } from "./ProjectPulseCard";
-import { VibeBar } from "./VibeBar";
-import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { DiscoverFeed } from "./DiscoverFeed";
+import { DevFeed } from "./DevFeed";
+import { WIPFeed } from "./WIPFeed";
+import { EditorView } from "@/components/editor/EditorView";
+import { cn } from "@/lib/utils";
+import { Sparkles, Github, Bot } from "lucide-react";
 
 export function Feed() {
-    const [vibe, setVibe] = useState("");
-    const [mode, setMode] = useState<any>("chaos");
-    const [duration, setDuration] = useState<any>("weekend");
-    const loadMoreRef = useRef<HTMLDivElement>(null);
+    const [feedMode, setFeedMode] = useState<"discover" | "dev" | "wip">("discover");
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
-        api.feed.generateIdea.useInfiniteQuery(
-            { vibe, mode, duration },
-            {
-                getNextPageParam: (lastPage) => lastPage.nextCursor,
-            }
-        );
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
-                }
-            },
-            { threshold: 0.1 }
-        );
-
-        if (loadMoreRef.current) {
-            observer.observe(loadMoreRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-    // Reset feed when vibe changes
-    const handleVibeChange = (newVibe: string) => {
-        setVibe(newVibe);
-    };
-
-    if (status === "pending") {
-        return (
-            <div className="h-screen w-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-
-    if (status === "error") {
-        return (
-            <div className="h-screen w-full flex items-center justify-center text-destructive">
-                Error loading feed.
-            </div>
-        );
-    }
+    const handleOpenEditor = () => setIsEditorOpen(true);
 
     return (
-        <div className="relative h-screen w-full bg-background overflow-y-scroll snap-y snap-mandatory scroll-smooth">
-            <VibeBar
-                onVibeChange={handleVibeChange}
-                onModeChange={setMode}
-                onDurationChange={setDuration}
-                currentMode={mode}
-                currentDuration={duration}
-            />
+        <div className="h-screen w-full bg-black relative">
+            <EditorView isOpen={isEditorOpen} onClose={() => setIsEditorOpen(false)} />
 
-            {data.pages.map((page, i) => (
-                <div key={i}>
-                    {page.type === "pulse" ? (
-                        <ProjectPulseCard project={page.data} />
-                    ) : (
-                        <IdeaCard idea={page.data} />
-                    )}
+            {/* Top Mode Switcher */}
+            <div className="absolute top-0 left-0 right-0 z-50 flex justify-center pt-14 pointer-events-none">
+                <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-full p-1 flex gap-1 pointer-events-auto shadow-2xl">
+                    <button
+                        onClick={() => setFeedMode("discover")}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2",
+                            feedMode === "discover"
+                                ? "bg-white text-black shadow-lg"
+                                : "text-zinc-500 hover:text-white hover:bg-white/10"
+                        )}
+                    >
+                        <Sparkles className="w-3 h-3" /> Discover
+                    </button>
+                    <button
+                        onClick={() => setFeedMode("dev")}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2",
+                            feedMode === "dev"
+                                ? "bg-white text-black shadow-lg"
+                                : "text-zinc-500 hover:text-white hover:bg-white/10"
+                        )}
+                    >
+                        <Github className="w-3 h-3" /> Dev
+                    </button>
+                    <button
+                        onClick={() => setFeedMode("wip")}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2",
+                            feedMode === "wip"
+                                ? "bg-white text-black shadow-lg"
+                                : "text-zinc-500 hover:text-white hover:bg-white/10"
+                        )}
+                    >
+                        <Bot className="w-3 h-3" /> WIP
+                    </button>
                 </div>
-            ))}
+            </div>
 
-            <div ref={loadMoreRef} className="h-20 w-full flex items-center justify-center snap-start">
-                {isFetchingNextPage && (
-                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                )}
+            {/* Feed Content */}
+            <div className="h-full w-full pt-0">
+                {feedMode === "discover" && <DiscoverFeed onOpenEditor={handleOpenEditor} />}
+                {feedMode === "dev" && <DevFeed onOpenEditor={handleOpenEditor} />}
+                {feedMode === "wip" && <WIPFeed />}
             </div>
         </div>
     );

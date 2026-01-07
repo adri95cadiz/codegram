@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Heart, User, Settings } from "lucide-react";
+import { Home, Heart, User, Settings, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
@@ -26,10 +26,10 @@ export function BottomNav({ currentView, onViewChange }: BottomNavProps) {
                     onClick={() => onViewChange("saved")}
                     className={cn(
                         "flex flex-col items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
-                        currentView === "saved" ? "text-red-500 bg-red-500/10" : "text-zinc-500 hover:text-zinc-300"
+                        currentView === "saved" ? "text-green-500 bg-green-500/10" : "text-zinc-500 hover:text-zinc-300"
                     )}
                 >
-                    <Heart className={cn("w-6 h-6", currentView === "saved" && "fill-current")} />
+                    <Briefcase className={cn("w-6 h-6", currentView === "saved" && "fill-current")} />
                 </button>
 
                 <button

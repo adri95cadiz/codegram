@@ -54,12 +54,23 @@ export function IdeaCard({ idea }: { idea: Idea }) {
 
     // Generate Pollinations Image URL
     const getImageUrl = () => {
-        const prompt = encodeURIComponent(
-            `${idea.vibe} style, ${idea.title}, ${idea.description}, abstract, minimal, 3d render, high quality, 4k`
-        );
-        // Use a seed based on ID to keep it consistent but unique
+        // Simplify prompt for better reliability
+        const basePrompt = `${idea.title} ${idea.description}`;
+        const style = idea.vibe === 'serious' || idea.vibe === 'startup'
+            ? "minimalist, clean, tech, corporate memphis, vector art"
+            : "abstract, 3d render, neon, glassmorphism, vibrant";
+
+        const prompt = encodeURIComponent(`${basePrompt}, ${style}`);
         const seed = idea.id;
         return `https://pollinations.ai/p/${prompt}?width=800&height=1200&seed=${seed}&nologo=true`;
+    };
+
+    const getWhyLabel = () => {
+        const seriousModes = ['serious', 'startup', 'learning', 'founder'];
+        if (seriousModes.includes(idea.vibe.toLowerCase())) {
+            return "Value Proposition";
+        }
+        return "Why it's sick";
     };
 
     return (
@@ -71,12 +82,15 @@ export function IdeaCard({ idea }: { idea: Idea }) {
             />
             <div className="h-[100dvh] w-full snap-start flex items-center justify-center p-0 sm:p-4 relative">
                 {/* Background Image with Overlay */}
-                <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 z-0 bg-zinc-900">
                     <img
                         src={getImageUrl()}
                         alt={idea.title}
-                        className="w-full h-full object-cover opacity-60"
+                        className="w-full h-full object-cover opacity-50 transition-opacity duration-700 ease-in-out"
                         loading="lazy"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                        }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/30" />
                     <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(idea.vibe)} mix-blend-overlay opacity-40`} />
@@ -124,7 +138,7 @@ export function IdeaCard({ idea }: { idea: Idea }) {
 
                             <div className="space-y-3">
                                 <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest font-mono">
-                                    Why it's sick
+                                    {getWhyLabel()}
                                 </h3>
                                 <p className="text-base italic text-white/80 border-l-2 border-white/40 pl-4 py-1">
                                     "{idea.why}"

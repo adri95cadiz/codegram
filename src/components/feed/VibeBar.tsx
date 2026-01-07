@@ -46,7 +46,7 @@ export function VibeBar({ onVibeChange, onModeChange, onDurationChange, currentM
     };
 
     return (
-        <div className="fixed top-4 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
+        <div className="fixed top-28 left-0 right-0 z-40 px-4 flex justify-center pointer-events-none">
             <form
                 onSubmit={handleSubmit}
                 className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-white/10 rounded-full p-1.5 shadow-2xl flex gap-2 pointer-events-auto transition-all focus-within:ring-1 focus-within:ring-white/20"

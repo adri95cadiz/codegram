@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Feed } from "@/components/feed/Feed";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { SavedView } from "@/components/profile/SavedView";
+import { ProjectsView } from "@/components/projects/ProjectsView";
+import { ProfileView } from "@/components/profile/ProfileView";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"feed" | "saved" | "profile">("feed");
