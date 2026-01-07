@@ -7,10 +7,13 @@ import { WIPFeed } from "./WIPFeed";
 import { EditorView } from "@/components/editor/EditorView";
 import { cn } from "@/lib/utils";
 import { Sparkles, Github, Bot } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 export function Feed() {
     const [feedMode, setFeedMode] = useState<"discover" | "dev" | "wip">("discover");
     const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+    const { t } = useLanguage();
 
     const handleOpenEditor = () => setIsEditorOpen(true);
 
@@ -30,7 +33,7 @@ export function Feed() {
                                 : "text-zinc-500 hover:text-white hover:bg-white/10"
                         )}
                     >
-                        <Sparkles className="w-3 h-3" /> Discover
+                        <Sparkles className="w-3 h-3" /> {t("feed.discover")}
                     </button>
                     <button
                         onClick={() => setFeedMode("dev")}
@@ -41,7 +44,7 @@ export function Feed() {
                                 : "text-zinc-500 hover:text-white hover:bg-white/10"
                         )}
                     >
-                        <Github className="w-3 h-3" /> Dev
+                        <Github className="w-3 h-3" /> {t("feed.dev")}
                     </button>
                     <button
                         onClick={() => setFeedMode("wip")}
@@ -52,7 +55,7 @@ export function Feed() {
                                 : "text-zinc-500 hover:text-white hover:bg-white/10"
                         )}
                     >
-                        <Bot className="w-3 h-3" /> WIP
+                        <Bot className="w-3 h-3" /> {t("feed.wip")}
                     </button>
                 </div>
             </div>

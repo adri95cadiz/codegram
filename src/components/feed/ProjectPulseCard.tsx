@@ -5,6 +5,7 @@ import { Terminal, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 interface ProjectPulseProps {
     project: {
@@ -20,6 +21,8 @@ interface ProjectPulseProps {
 }
 
 export function ProjectPulseCard({ project, onOpenEditor }: ProjectPulseProps) {
+    const { t } = useLanguage();
+
     return (
         <div className="h-[100dvh] w-full snap-start flex items-center justify-center p-0 sm:p-4 relative">
             {/* Background Pulse Effect */}
@@ -52,7 +55,7 @@ export function ProjectPulseCard({ project, onOpenEditor }: ProjectPulseProps) {
                         <div className="p-6 rounded-xl bg-green-950/30 border border-green-500/20 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-1 h-full bg-green-500" />
                             <h3 className="text-xs font-bold text-green-400 uppercase tracking-widest font-mono mb-2">
-                                Recommended Next Step
+                                {t("card.next_step")}
                             </h3>
                             <p className="text-xl text-white font-mono leading-relaxed">
                                 &gt; {project.nextStep || "Check project for details..."}
@@ -65,7 +68,7 @@ export function ProjectPulseCard({ project, onOpenEditor }: ProjectPulseProps) {
 
                         <div className="space-y-3">
                             <h3 className="text-xs font-bold text-zinc-600 uppercase tracking-widest font-mono">
-                                Stack
+                                {t("card.the_stack")}
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {project.stack.split(',').map((tech) => (
@@ -85,7 +88,7 @@ export function ProjectPulseCard({ project, onOpenEditor }: ProjectPulseProps) {
                             onClick={onOpenEditor}
                         >
                             <Terminal className="w-5 h-5 mr-2" />
-                            Open Editor
+                            {t("card.open_editor")}
                         </Button>
                     </CardFooter>
                 </Card>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 interface GitHubConnectProps {
     onConnect: (repos: string[]) => void;
@@ -15,6 +16,7 @@ export function GitHubConnect({ onConnect }: GitHubConnectProps) {
     const [step, setStep] = useState<"connect" | "select">("connect");
     const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
     const [search, setSearch] = useState("");
+    const { t } = useLanguage();
 
     const mockRepos = [
         "codegram",
@@ -54,9 +56,9 @@ export function GitHubConnect({ onConnect }: GitHubConnectProps) {
                             <Github className="w-12 h-12" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-3xl font-black tracking-tight">Connect GitHub</h2>
+                            <h2 className="text-3xl font-black tracking-tight">{t("github.connect_title")}</h2>
                             <p className="text-zinc-400">
-                                Import your repositories to unlock AI-powered features, bug fixes, and code optimizations.
+                                {t("github.connect_desc")}
                             </p>
                         </div>
                         <Button
@@ -64,10 +66,10 @@ export function GitHubConnect({ onConnect }: GitHubConnectProps) {
                             onClick={handleConnect}
                             className="w-full h-14 rounded-full bg-white text-black hover:bg-zinc-200 font-bold text-lg"
                         >
-                            Authorize Access
+                            {t("github.authorize")}
                         </Button>
                         <p className="text-xs text-zinc-600 flex items-center justify-center gap-1">
-                            <Lock className="w-3 h-3" /> Secure Connection via OAuth 2.0
+                            <Lock className="w-3 h-3" /> {t("github.secure_connection")}
                         </p>
                     </motion.div>
                 ) : (
@@ -77,8 +79,8 @@ export function GitHubConnect({ onConnect }: GitHubConnectProps) {
                         className="flex flex-col h-[60vh]"
                     >
                         <div className="mb-6">
-                            <h2 className="text-2xl font-bold mb-1">Select Repositories</h2>
-                            <p className="text-zinc-400 text-sm">Choose projects to analyze</p>
+                            <h2 className="text-2xl font-bold mb-1">{t("github.select_repos")}</h2>
+                            <p className="text-zinc-400 text-sm">{t("github.choose_projects")}</p>
                         </div>
 
                         <div className="relative mb-4">
@@ -86,7 +88,7 @@ export function GitHubConnect({ onConnect }: GitHubConnectProps) {
                             <Input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search repositories..."
+                                placeholder={t("github.search_placeholder")}
                                 className="pl-9 bg-zinc-900 border-zinc-800 rounded-xl h-12 text-white placeholder:text-zinc-600"
                             />
                         </div>
@@ -122,7 +124,7 @@ export function GitHubConnect({ onConnect }: GitHubConnectProps) {
                                 disabled={selectedRepos.length === 0}
                                 className="w-full h-14 rounded-full bg-green-500 text-black hover:bg-green-400 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Import {selectedRepos.length} Projects
+                                {t("github.import_projects")} ({selectedRepos.length})
                             </Button>
                         </div>
                     </motion.div>

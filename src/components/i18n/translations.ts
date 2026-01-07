@@ -1,0 +1,181 @@
+export const translations = {
+    en: {
+        common: {
+            loading: "Loading...",
+            error: "Error",
+            save: "Save",
+            cancel: "Cancel",
+            connect: "Connect",
+            import: "Import",
+        },
+        feed: {
+            discover: "Discover",
+            dev: "Dev",
+            wip: "WIP",
+            mode: "Mode",
+            vibe_placeholder: "What's the vibe?",
+            time_effort: "Time / Effort",
+            modes: {
+                chaos: "Chaos",
+                serious: "Serious",
+                learning: "Learning",
+                startup: "Startup",
+                artist: "Artist",
+                gamedev: "Game Dev",
+                founder: "Founder",
+            },
+            durations: {
+                quick: "Quick Fix",
+                weekend: "Weekend Warrior",
+                hackathon: "Hackathon",
+                sidehustle: "Side Hustle",
+                founder: "Founder Mode",
+            },
+            all_caught_up: "All caught up! Check back later for more.",
+        },
+        card: {
+            value_prop: "Value Proposition",
+            why_sick: "Why it's sick",
+            the_stack: "The Stack",
+            ignite: "Ignite Project",
+            remix: "Remix Idea",
+            share: "Share",
+            review_merge: "Review & Merge",
+            open_editor: "Open Editor",
+            next_step: "Recommended Next Step",
+            suggested_changes: "Suggested Changes",
+            impact: "Impact",
+        },
+        github: {
+            connect_title: "Connect GitHub",
+            connect_desc: "Import your repositories to unlock AI-powered features, bug fixes, and code optimizations.",
+            authorize: "Authorize Access",
+            secure_connection: "Secure Connection via OAuth 2.0",
+            select_repos: "Select Repositories",
+            choose_projects: "Choose projects to analyze",
+            search_placeholder: "Search repositories...",
+            import_projects: "Import Projects",
+        },
+        wip: {
+            title: "Agent Control Center",
+            desc: "Active agent tasks and lines of work will appear here. Start a project to see agents in action.",
+        },
+        projects: {
+            title: "Active Projects",
+            subtitle: "Your creative factory",
+            continue: "Continue Building",
+            empty: "Start a new project from the feed to see it here.",
+            status: {
+                inprogress: "In Progress",
+                paused: "Paused",
+                completed: "Completed",
+            }
+        },
+        profile: {
+            title: "Profile",
+            role: "Full Stack Wizard",
+            stats: {
+                projects: "Projects",
+                ideas: "Ideas",
+                streak: "Streak",
+            },
+            tabs: {
+                collection: "Collection",
+                achievements: "Achievements",
+            },
+            edit_profile: "Edit Profile",
+            language: "Language",
+        }
+    },
+    es: {
+        common: {
+            loading: "Cargando...",
+            error: "Error",
+            save: "Guardar",
+            cancel: "Cancelar",
+            connect: "Conectar",
+            import: "Importar",
+        },
+        feed: {
+            discover: "Descubrir",
+            dev: "Desarrollo",
+            wip: "En Progreso",
+            mode: "Modo",
+            vibe_placeholder: "¿Cuál es la vibra?",
+            time_effort: "Tiempo / Esfuerzo",
+            modes: {
+                chaos: "Caos",
+                serious: "Serio",
+                learning: "Aprendizaje",
+                startup: "Startup",
+                artist: "Artista",
+                gamedev: "Game Dev",
+                founder: "Fundador",
+            },
+            durations: {
+                quick: "Rápido",
+                weekend: "Fin de Semana",
+                hackathon: "Hackathon",
+                sidehustle: "Proyecto Lateral",
+                founder: "Modo Fundador",
+            },
+            all_caught_up: "¡Estás al día! Vuelve más tarde.",
+        },
+        card: {
+            value_prop: "Propuesta de Valor",
+            why_sick: "Por qué mola",
+            the_stack: "Tecnologías",
+            ignite: "Iniciar Proyecto",
+            remix: "Remezclar Idea",
+            share: "Compartir",
+            review_merge: "Revisar y Fusionar",
+            open_editor: "Abrir Editor",
+            next_step: "Siguiente Paso Recomendado",
+            suggested_changes: "Cambios Sugeridos",
+            impact: "Impacto",
+        },
+        github: {
+            connect_title: "Conectar GitHub",
+            connect_desc: "Importa tus repositorios para desbloquear funciones, correcciones y optimizaciones con IA.",
+            authorize: "Autorizar Acceso",
+            secure_connection: "Conexión Segura vía OAuth 2.0",
+            select_repos: "Seleccionar Repositorios",
+            choose_projects: "Elige proyectos para analizar",
+            search_placeholder: "Buscar repositorios...",
+            import_projects: "Importar Proyectos",
+        },
+        wip: {
+            title: "Centro de Control de Agentes",
+            desc: "Las tareas activas de los agentes aparecerán aquí. Inicia un proyecto para verlos en acción.",
+        },
+        projects: {
+            title: "Proyectos Activos",
+            subtitle: "Tu fábrica creativa",
+            continue: "Seguir Construyendo",
+            empty: "Inicia un nuevo proyecto desde el feed para verlo aquí.",
+            status: {
+                inprogress: "En Progreso",
+                paused: "Pausado",
+                completed: "Completado",
+            }
+        },
+        profile: {
+            title: "Perfil",
+            role: "Mago Full Stack",
+            stats: {
+                projects: "Proyectos",
+                ideas: "Ideas",
+                streak: "Racha",
+            },
+            tabs: {
+                collection: "Colección",
+                achievements: "Logros",
+            },
+            edit_profile: "Editar Perfil",
+            language: "Idioma",
+        }
+    }
+};
+
+export type Language = "en" | "es";
+export type TranslationKey = keyof typeof translations.en;
