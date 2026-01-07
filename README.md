@@ -1,92 +1,36 @@
-# Codegram
-
-> Turn doom scrolling into doom coding
-
-Mobile-first PWA that shows an infinite feed of coding project ideas. Like an idea, and an AI job creates a real GitHub repo with a working starter.
-
-## Stack
-
-- **Next.js 15** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **PWA support** (next-pwa)
-- **tRPC** (type-safe API)
-- **Drizzle ORM** + **PostgreSQL**
-- **TanStack Query**
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-### 1. Install dependencies
+First, run the development server:
 
 ```bash
-pnpm install
-```
-
-### 2. Setup Database
-
-Asegúrate de tener PostgreSQL corriendo. Actualiza `.env` con tu connection string:
-
-```env
-DATABASE_URL="postgresql://localhost:5432/codegram"
-```
-
-### 3. Push schema to DB
-
-```bash
-pnpm db:push
-```
-
-### 4. Seed database
-
-```bash
-pnpm db:seed
-```
-
-### 5. Run dev server
-
-```bash
+npm run dev
+# or
+yarn dev
+# or
 pnpm dev
+# or
+bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) on your phone or browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Available Scripts
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm db:push` - Push schema to database
-- `pnpm db:seed` - Seed database with mock data
-- `pnpm db:studio` - Open Drizzle Studio (DB GUI)
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Features
+## Learn More
 
-- ✅ PWA support (installable on mobile)
-- ✅ Mobile-first design
-- ✅ tRPC API (type-safe)
-- ✅ PostgreSQL + Drizzle ORM
-- ✅ Like/unlike ideas
-- ⏳ AI repo generation (coming soon)
-- ⏳ GitHub integration (coming soon)
+To learn more about Next.js, take a look at the following resources:
 
-## Project Structure
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-```
-codegram/
-├── app/
-│   ├── api/trpc/          # tRPC API routes
-│   ├── layout.tsx         # Root layout + providers
-│   └── page.tsx           # Main feed page
-├── components/
-│   └── idea-card.tsx      # Idea card component
-├── lib/
-│   ├── db/                # Database (schema, client)
-│   └── trpc/              # tRPC (router, provider)
-├── scripts/
-│   └── seed.ts            # DB seed script
-└── public/                # PWA assets
-```
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
----
+## Deploy on Vercel
 
-Built with joy and momentum 🚀
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
