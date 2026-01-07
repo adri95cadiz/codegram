@@ -20,6 +20,12 @@
 # production
 /build
 
+# PWA
+**/public/workbox-*
+**/public/worker-*
+**/public/sw.js
+**/public/fallback-*.js
+
 # misc
 .DS_Store
 *.pem
@@ -39,3 +45,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
