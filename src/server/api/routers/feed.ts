@@ -19,6 +19,29 @@ export const feedRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
+      // 30% chance to show a "Project Pulse" if not the first page
+      // In a real app, we'd check if the user has active projects
+      const showProjectPulse = input.cursor && input.cursor > 0 && Math.random() < 0.3;
+
+      if (showProjectPulse) {
+        // Mock fetching an active project
+        const mockProject = {
+            id: "pulse-1",
+            title: "Vim-Motion File Manager",
+            description: "Navigate your file system with HJKL. Blazingly fast.",
+            stack: "Rust, Ratatui",
+            vibe: "Chaos",
+            status: "In Progress",
+            nextStep: "Implement file deletion with 'dd' command binding.",
+        };
+
+        return {
+            type: "pulse" as const,
+            data: mockProject,
+            nextCursor: (input.cursor ?? 0) + 1,
+        };
+      }
+
       const vibe = input.vibe || "Random";
       const mode = input.mode || "chaos";
       const duration = input.duration || "weekend";
@@ -97,27 +120,21 @@ export const feedRouter = createTRPCRouter({
         ],
         response_format: { type: "json_object" },
       });
-
-      const content = completion.choices[0].message.content;
-      if (!content) throw new Error("No content generated");
       
-      const generatedIdea = JSON.parse(content) as {
-        title: string;
-        description: string;
-        stack: string;
-        effort: string;
-        why: string;
-      };
-
+      const ideaContent = JSON.parse(completion.choices[0].message.content || "{}");
+      
       return {
-        idea: {
-          id: Math.random().toString(36).substring(7),
-          ...generatedIdea,
-          vibe: input.vibe || "Random",
+        type: "idea" as const,
+        data: {
+            id: Math.random().toString(36).substring(7),
+            ...ideaContent,
+            vibe: mode, // Use mode as vibe tag for consistency
         },
         nextCursor: (input.cursor ?? 0) + 1,
       };
     }),
+
+
 
   toggleLike: publicProcedure
     .input(

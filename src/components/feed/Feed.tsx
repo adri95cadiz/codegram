@@ -3,17 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/trpc/react";
 import { IdeaCard } from "./IdeaCard";
+import { ProjectPulseCard } from "./ProjectPulseCard";
 import { VibeBar } from "./VibeBar";
 import { Loader2 } from "lucide-react";
 
 export function Feed() {
     const [vibe, setVibe] = useState("");
-    const [mode, setMode] = useState<"chaos" | "serious" | "learning">("chaos");
+    const [mode, setMode] = useState<any>("chaos");
+    const [duration, setDuration] = useState<any>("weekend");
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
         api.feed.generateIdea.useInfiniteQuery(
-            { vibe, mode },
+            { vibe, mode, duration },
             {
                 getNextPageParam: (lastPage) => lastPage.nextCursor,
             }
@@ -62,11 +64,19 @@ export function Feed() {
             <VibeBar
                 onVibeChange={handleVibeChange}
                 onModeChange={setMode}
+                onDurationChange={setDuration}
                 currentMode={mode}
+                currentDuration={duration}
             />
 
             {data.pages.map((page, i) => (
-                <IdeaCard key={page.idea.id} idea={page.idea} />
+                <div key={i}>
+                    {page.type === "pulse" ? (
+                        <ProjectPulseCard project={page.data} />
+                    ) : (
+                        <IdeaCard idea={page.data} />
+                    )}
+                </div>
             ))}
 
             <div ref={loadMoreRef} className="h-20 w-full flex items-center justify-center snap-start">

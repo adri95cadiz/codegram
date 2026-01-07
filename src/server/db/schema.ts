@@ -7,6 +7,7 @@ import {
   serial,
   timestamp,
   varchar,
+  text,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -53,5 +54,31 @@ export const likes = createTable(
   },
   (example) => [
     index("user_id_idx").on(example.userId),
+  ]
+);
+
+export const projects = createTable(
+  "project",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    
+    title: varchar("title", { length: 256 }).notNull(),
+    description: text("description").notNull(),
+    stack: varchar("stack", { length: 256 }).notNull(),
+    vibe: varchar("vibe", { length: 100 }).notNull(),
+    
+    status: varchar("status", { length: 50 }).default("active").notNull(), // active, archived, completed
+    nextStep: text("next_step"), // The current AI suggestion
+    
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (example) => [
+    index("project_user_id_idx").on(example.userId),
   ]
 );

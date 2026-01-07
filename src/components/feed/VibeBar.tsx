@@ -1,9 +1,7 @@
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Zap, Briefcase, GraduationCap } from "lucide-react";
+import { Sparkles, Zap, Briefcase, GraduationCap, Rocket, Palette, Gamepad2, Clock, Calendar, CalendarDays, CalendarRange, Building2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,11 +11,13 @@ import {
 
 interface VibeBarProps {
     onVibeChange: (vibe: string) => void;
-    onModeChange: (mode: "chaos" | "serious" | "learning") => void;
-    currentMode: "chaos" | "serious" | "learning";
+    onModeChange: (mode: any) => void;
+    onDurationChange: (duration: any) => void;
+    currentMode: string;
+    currentDuration: string;
 }
 
-export function VibeBar({ onVibeChange, onModeChange, currentMode }: VibeBarProps) {
+export function VibeBar({ onVibeChange, onModeChange, onDurationChange, currentMode, currentDuration }: VibeBarProps) {
     const [vibe, setVibe] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -28,10 +28,21 @@ export function VibeBar({ onVibeChange, onModeChange, currentMode }: VibeBarProp
         }
     };
 
-    const modeIcons = {
+    const modeIcons: Record<string, React.ReactNode> = {
         chaos: <Zap className="w-4 h-4 text-yellow-500" />,
         serious: <Briefcase className="w-4 h-4 text-blue-500" />,
         learning: <GraduationCap className="w-4 h-4 text-green-500" />,
+        startup: <Rocket className="w-4 h-4 text-orange-500" />,
+        artist: <Palette className="w-4 h-4 text-purple-500" />,
+        gamedev: <Gamepad2 className="w-4 h-4 text-red-500" />,
+    };
+
+    const durationIcons: Record<string, React.ReactNode> = {
+        quick: <Clock className="w-4 h-4 text-zinc-400" />,
+        weekend: <Calendar className="w-4 h-4 text-zinc-400" />,
+        week: <CalendarDays className="w-4 h-4 text-zinc-400" />,
+        month: <CalendarRange className="w-4 h-4 text-zinc-400" />,
+        founder: <Building2 className="w-4 h-4 text-zinc-400" />,
     };
 
     return (
@@ -43,18 +54,52 @@ export function VibeBar({ onVibeChange, onModeChange, currentMode }: VibeBarProp
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="rounded-full shrink-0 hover:bg-white/10">
-                            {modeIcons[currentMode]}
+                            {modeIcons[currentMode] || <Zap className="w-4 h-4" />}
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-800 text-zinc-200">
                         <DropdownMenuItem onClick={() => onModeChange("chaos")} className="gap-2">
-                            <Zap className="w-4 h-4 text-yellow-500" /> Chaos Mode
+                            <Zap className="w-4 h-4 text-yellow-500" /> Chaos
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onModeChange("serious")} className="gap-2">
-                            <Briefcase className="w-4 h-4 text-blue-500" /> Serious Mode
+                            <Briefcase className="w-4 h-4 text-blue-500" /> Serious
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onModeChange("learning")} className="gap-2">
-                            <GraduationCap className="w-4 h-4 text-green-500" /> Learning Mode
+                            <GraduationCap className="w-4 h-4 text-green-500" /> Learning
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onModeChange("startup")} className="gap-2">
+                            <Rocket className="w-4 h-4 text-orange-500" /> Startup
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onModeChange("artist")} className="gap-2">
+                            <Palette className="w-4 h-4 text-purple-500" /> Artist
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onModeChange("gamedev")} className="gap-2">
+                            <Gamepad2 className="w-4 h-4 text-red-500" /> Game Dev
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="rounded-full shrink-0 hover:bg-white/10">
+                            {durationIcons[currentDuration] || <Calendar className="w-4 h-4" />}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-800 text-zinc-200">
+                        <DropdownMenuItem onClick={() => onDurationChange("quick")} className="gap-2">
+                            <Clock className="w-4 h-4" /> Quick Fix (1-2h)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDurationChange("weekend")} className="gap-2">
+                            <Calendar className="w-4 h-4" /> Weekend (48h)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDurationChange("week")} className="gap-2">
+                            <CalendarDays className="w-4 h-4" /> Hackathon (1w)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDurationChange("month")} className="gap-2">
+                            <CalendarRange className="w-4 h-4" /> Side Hustle (1m)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDurationChange("founder")} className="gap-2">
+                            <Building2 className="w-4 h-4" /> Founder Mode
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -62,7 +107,7 @@ export function VibeBar({ onVibeChange, onModeChange, currentMode }: VibeBarProp
                 <Input
                     value={vibe}
                     onChange={(e) => setVibe(e.target.value)}
-                    placeholder={`Vibe check (${currentMode} mode)...`}
+                    placeholder={`Vibe check...`}
                     className="bg-transparent border-none text-white placeholder:text-zinc-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-10"
                 />
                 <Button
