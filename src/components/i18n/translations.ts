@@ -32,6 +32,7 @@ export const translations = {
                 founder: "Founder Mode",
             },
             all_caught_up: "All caught up! Check back later for more.",
+            error_loading: "Error loading feed.",
         },
         card: {
             value_prop: "Value Proposition",
@@ -85,6 +86,23 @@ export const translations = {
             },
             edit_profile: "Edit Profile",
             language: "Language",
+        },
+        mission_control: {
+            title: "Mission Control",
+            operational_target: "Operational Target",
+            view_source: "View Source",
+            logs: "Logs",
+            tactical_analysis: "Tactical Analysis",
+            calculating: "Calculating Trajectories...",
+            error_gen: "Mission generation failed",
+            retry: "Retry",
+            xp: "xp",
+            delete_title: "Delete Project?",
+            delete_confirm: "This will properly delete \"{title}\" from your database. This action cannot be undone.",
+            delete_action: "Delete",
+            next_objective: "Next Objective",
+            init_repo: "Initialize Repository",
+            open: "Open Mission Control",
         }
     },
     es: {
@@ -120,6 +138,7 @@ export const translations = {
                 founder: "Modo Fundador",
             },
             all_caught_up: "¡Estás al día! Vuelve más tarde.",
+            error_loading: "Error al cargar el feed.",
         },
         card: {
             value_prop: "Propuesta de Valor",
@@ -173,6 +192,23 @@ export const translations = {
             },
             edit_profile: "Editar Perfil",
             language: "Idioma",
+        },
+        mission_control: {
+            title: "Control de Misión",
+            operational_target: "Objetivo Operativo",
+            view_source: "Ver Código",
+            logs: "Registros",
+            tactical_analysis: "Análisis Táctico",
+            calculating: "Calculando Trayectorias...",
+            error_gen: "Fallo al generar misiones",
+            retry: "Reintentar",
+            xp: "px",
+            delete_title: "¿Borrar Proyecto?",
+            delete_confirm: "Esto eliminará \"{title}\" de tu base de datos. Esta acción no se puede deshacer.",
+            delete_action: "Borrar",
+            next_objective: "Siguiente Objetivo",
+            init_repo: "Inicializar Repositorio",
+            open: "Abrir Control de Misión",
         }
     }
 };

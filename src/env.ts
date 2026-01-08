@@ -5,6 +5,10 @@ export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
     OPENAI_API_KEY: z.string(),
+    NEXTAUTH_SECRET: z.string(),
+    NEXTAUTH_URL: z.string().url().optional(),
+    GITHUB_ID: z.string(),
+    GITHUB_SECRET: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -15,6 +19,10 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    GITHUB_ID: process.env.GITHUB_ID,
+    GITHUB_SECRET: process.env.GITHUB_SECRET,
     NODE_ENV: process.env.NODE_ENV,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

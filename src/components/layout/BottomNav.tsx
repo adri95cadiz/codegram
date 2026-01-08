@@ -1,7 +1,7 @@
 "use client";
 
-import { Home, Heart, User, Settings, Briefcase } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Globe, Gamepad2, User } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface BottomNavProps {
     currentView: "feed" | "saved" | "profile";
@@ -10,38 +10,62 @@ interface BottomNavProps {
 
 export function BottomNav({ currentView, onViewChange }: BottomNavProps) {
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/90 to-transparent pointer-events-none">
-            <div className="mx-auto max-w-md bg-black/80 backdrop-blur-xl border border-white/10 rounded-full h-16 px-6 flex items-center justify-between shadow-2xl pointer-events-auto">
-                <button
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+            <div className="flex items-center gap-2 p-2 rounded-3xl bg-zinc-950/80 backdrop-blur-xl border border-zinc-800/50 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+
+                <NavButton
+                    active={currentView === "feed"}
                     onClick={() => onViewChange("feed")}
-                    className={cn(
-                        "flex flex-col items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
-                        currentView === "feed" ? "text-white bg-white/10" : "text-zinc-500 hover:text-zinc-300"
-                    )}
-                >
-                    <Home className="w-6 h-6" />
-                </button>
+                    icon={<Globe className="w-5 h-5" />}
+                    label="NET"
+                />
 
-                <button
+                <div className="w-px h-6 bg-zinc-800/50" />
+
+                <NavButton
+                    active={currentView === "saved"}
                     onClick={() => onViewChange("saved")}
-                    className={cn(
-                        "flex flex-col items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
-                        currentView === "saved" ? "text-green-500 bg-green-500/10" : "text-zinc-500 hover:text-zinc-300"
-                    )}
-                >
-                    <Briefcase className={cn("w-6 h-6", currentView === "saved" && "fill-current")} />
-                </button>
+                    icon={<Gamepad2 className="w-5 h-5" />}
+                    label="WORLDS"
+                />
 
-                <button
+                <div className="w-px h-6 bg-zinc-800/50" />
+
+                <NavButton
+                    active={currentView === "profile"}
                     onClick={() => onViewChange("profile")}
-                    className={cn(
-                        "flex flex-col items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
-                        currentView === "profile" ? "text-white bg-white/10" : "text-zinc-500 hover:text-zinc-300"
-                    )}
-                >
-                    <User className="w-6 h-6" />
-                </button>
+                    icon={<User className="w-5 h-5" />}
+                    label="ID"
+                />
+
             </div>
         </div>
+    );
+}
+
+function NavButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`
+        relative group flex flex-col items-center justify-center w-16 h-14 rounded-2xl transition-all duration-300
+        ${active ? "text-green-400 bg-green-950/20" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"}
+      `}
+        >
+            {active && (
+                <motion.div
+                    layoutId="active-glow"
+                    className="absolute inset-0 bg-green-500/10 rounded-2xl"
+                    initial={false}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+            )}
+            <div className={`relative z-10 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-105"}`}>
+                {icon}
+            </div>
+            <span className="text-[9px] font-black tracking-widest mt-1 opacity-60 font-mono">
+                {label}
+            </span>
+        </button>
     );
 }

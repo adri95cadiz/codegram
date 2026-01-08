@@ -1,0 +1,1 @@
+// [DOOM FIX] Sanitizar Consultas SQL: Implementar un sistema de validación y sanitización para todas las entradas que se utilicen en consultas SQL. Considerar el uso de ORM o parámetros preparados para proteger contra inyecciones SQL.

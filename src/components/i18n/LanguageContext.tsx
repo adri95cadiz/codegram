@@ -31,6 +31,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const handleSetLanguage = (lang: Language) => {
         setLanguage(lang);
         localStorage.setItem("codegram-lang", lang);
+        document.cookie = `codegram-lang=${lang}; path=/; max-age=31536000`; // 1 year persistence
     };
 
     const t = (path: string) => {

@@ -2,8 +2,17 @@ import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { db } from "@/server/db";
+
+import { cookies } from "next/headers";
+
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const cookieStore = await cookies();
+  const language = cookieStore.get("codegram-lang")?.value ?? "en";
+
   return {
+    db,
+    language,
     ...opts,
   };
 };

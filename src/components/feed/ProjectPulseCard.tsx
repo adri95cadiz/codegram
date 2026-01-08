@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Terminal, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { useLanguage } from "@/components/i18n/LanguageContext";
 
 interface ProjectPulseProps {
     project: {
-        id: string;
+        id: number;
         title: string;
         description: string;
         stack: string;
@@ -25,7 +25,6 @@ export function ProjectPulseCard({ project, onOpenEditor }: ProjectPulseProps) {
 
     return (
         <div className="h-[100dvh] w-full snap-start flex items-center justify-center p-0 sm:p-4 relative">
-            {/* Background Pulse Effect */}
             <div className="absolute inset-0 z-0 bg-black">
                 <div className="absolute inset-0 bg-green-500/10 animate-pulse" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-green-900/20 via-black to-black" />

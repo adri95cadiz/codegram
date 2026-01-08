@@ -100,49 +100,47 @@ export function IdeaCard({ idea }: { idea: Idea }) {
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
-                    className="w-full max-w-md h-full max-h-[100dvh] sm:max-h-[85vh] relative z-10"
+                    className="w-full max-w-md h-[80vh] relative z-10"
                 >
                     <Card className="h-full flex flex-col border-white/10 bg-black/20 backdrop-blur-md shadow-2xl overflow-hidden relative group border-0 sm:border">
 
-                        <CardHeader className="space-y-4 relative z-10 pt-20 sm:pt-6">
-                            <div className="flex justify-between items-start">
+                        <CardHeader className="space-y-2 relative z-10 px-6">
+                            <div className="flex justify-between items-start gap-2">
                                 <Badge variant="outline" className="uppercase tracking-widest text-[10px] font-mono border-white/20 text-white/90 bg-black/40 backdrop-blur-md">
                                     {idea.vibe}
                                 </Badge>
-                                <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 font-mono text-xs backdrop-blur-md">
+                                <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 font-mono text-xs backdrop-blur-md max-w-[300px] text-overflow-ellipsis">
                                     {idea.effort}
                                 </Badge>
                             </div>
-                            <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-[0.9] font-mono mt-2 text-white drop-shadow-2xl">
+                            <h2 className="text-3xl sm:text-4xl font-black tracking-tighter leading-[0.95] font-mono mt-1 text-white drop-shadow-2xl">
                                 {idea.title}
                             </h2>
                         </CardHeader>
 
-                        <CardContent className="flex-1 flex flex-col gap-8 overflow-y-auto relative z-10 scrollbar-hide pb-24">
-                            <p className="text-xl text-white/90 leading-relaxed font-medium drop-shadow-md">
+                        <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto relative z-10 pb-20 px-6 sm:px-8">
+                            <p className="text-base sm:text-lg text-white/90 leading-relaxed font-medium drop-shadow-md">
                                 {idea.description}
                             </p>
 
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest font-mono">
-                                    The Stack
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {idea.stack.split(',').map((tech) => (
-                                        <span key={tech} className="px-3 py-1.5 rounded-md bg-white/10 border border-white/10 text-sm font-mono text-white/90 hover:bg-white/20 transition-colors backdrop-blur-md">
-                                            {tech.trim()}
-                                        </span>
-                                    ))}
+                            {/* Stack & Why Grid */}
+                            <div className="grid gap-3">
+                                <div className="space-y-1.5">
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {idea.stack.split(',').map((tech) => (
+                                            <span key={tech} className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-white/80 hover:bg-white/10 transition-colors">
+                                                {tech.trim()}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest font-mono">
-                                    {getWhyLabel()}
-                                </h3>
-                                <p className="text-base italic text-white/80 border-l-2 border-white/40 pl-4 py-1">
-                                    "{idea.why}"
-                                </p>
+                                <div className="relative p-3 rounded-xl bg-black/40 border border-white/5 backdrop-blur-xl">
+                                    <div className="absolute -left-0.5 top-3 bottom-3 w-0.5 bg-white/20 rounded-full" />
+                                    <p className="text-xs italic text-white/60 pl-2">
+                                        "{idea.why}"
+                                    </p>
+                                </div>
                             </div>
                         </CardContent>
 
