@@ -21,7 +21,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Folder, GitBranch, Github, Link as LinkIcon, RefreshCcw, CheckCircle2, Circle, Ghost } from "lucide-react";
+import { Folder, GitBranch, Github, Link as LinkIcon, RefreshCcw, CheckCircle2, Circle, Ghost, X, Award } from "lucide-react";
 import { toast } from "sonner";
 import { FolderSelector } from "../create/FolderSelector";
 import { GitConnector } from "../create/GitConnector";
@@ -65,6 +65,15 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
         { enabled: !!selectedProject }
     );
 
+    // Get user stats for XP display
+    const { data: userStats } = api.projects.getAll.useQuery(undefined, {
+        select: (data) => {
+            // This is a workaround - in a real app you'd have a separate user query
+            // For now we'll calculate from completed missions
+            return { totalXp: 0, level: 1 };
+        }
+    });
+
     const generateMissions = api.feed.generateMissions.useMutation({
         onSuccess: async (data) => {
             // Automatically add generated missions to DB
@@ -93,6 +102,38 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
             setNewMissionTitle("");
             setNewMissionDesc("");
             setIsAddMissionOpen(false);
+            toast.success("Mission created!");
+        }
+    });
+
+    const acceptMission = api.missions.acceptMission.useMutation({
+        onSuccess: () => {
+            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            toast.success("Mission accepted!");
+        }
+    });
+
+    const rejectMission = api.missions.rejectMission.useMutation({
+        onSuccess: () => {
+            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            toast.success("Mission rejected");
+        }
+    });
+
+    const updateMissionProgress = api.missions.updateProgress.useMutation({
+        onSuccess: () => {
+            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+        }
+    });
+
+    const completeMission = api.missions.completeMission.useMutation({
+        onSuccess: (data) => {
+            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            if (data.leveledUp) {
+                toast.success(`🎉 Mission Complete! +${data.xpGained} XP - Level Up! Now Level ${data.newLevel}!`);
+            } else {
+                toast.success(`✅ Mission Complete! +${data.xpGained} XP`);
+            }
         }
     });
 
@@ -173,7 +214,7 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
                     >
                         {/* Header */}
                         <div className="flex justify-between items-start mb-6 border-b border-zinc-900 pb-6">
-                            <div>
+                            <div className="flex-1">
                                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 font-mono tracking-tighter uppercase drop-shadow-[0_0_10px_rgba(34,197,94,0.3)]">
                                     {t("mission_control.title")}
                                 </h2>
@@ -182,7 +223,22 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
                                     {t("mission_control.operational_target")}: {activeProject.title ? activeProject.title.toUpperCase() : "PROJECT"}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-4">
+                                {/* User XP Stats */}
+                                <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-yellow-500" />
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-zinc-600 uppercase font-mono">Level</span>
+                                            <span className="text-sm font-black text-green-400 font-mono">{userStats?.level || 1}</span>
+                                        </div>
+                                    </div>
+                                    <div className="w-px h-8 bg-zinc-800" />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-zinc-600 uppercase font-mono">Total XP</span>
+                                        <span className="text-sm font-black text-yellow-500 font-mono">{userStats?.totalXp || 0}</span>
+                                    </div>
+                                </div>
                                 <Button
                                     variant="ghost"
                                     onClick={() => setSelectedProject(null)}
@@ -314,27 +370,106 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
                                                 animate={{ opacity: 1, x: 0 }}
                                             >
                                                 <Card className="bg-zinc-900/30 border-zinc-800/50 hover:border-green-500/20 transition-all overflow-hidden group">
-                                                    <CardHeader className="p-4 flex flex-row items-start gap-4 space-y-0">
-                                                        <div className="mt-1">
-                                                            {mission.status === 'completed' ? (
-                                                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                                            ) : mission.status === 'active' ? (
-                                                                <Circle className="w-4 h-4 text-blue-500 animate-pulse fill-blue-500/20" />
-                                                            ) : (
-                                                                <Circle className="w-4 h-4 text-zinc-700" />
-                                                            )}
+                                                    <CardHeader className="p-4 space-y-3">
+                                                        <div className="flex items-start gap-4">
+                                                            <div className="mt-1">
+                                                                {mission.status === 'completed' ? (
+                                                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                                ) : mission.status === 'active' ? (
+                                                                    <Circle className="w-4 h-4 text-blue-500 animate-pulse fill-blue-500/20" />
+                                                                ) : (
+                                                                    <Circle className="w-4 h-4 text-yellow-500" />
+                                                                )}
+                                                            </div>
+                                                            <div className="space-y-1 flex-1">
+                                                                <CardTitle className="text-sm font-bold text-zinc-300 group-hover:text-white transition-colors">
+                                                                    {mission.title}
+                                                                </CardTitle>
+                                                                <CardDescription className="text-[11px] text-zinc-500 leading-normal line-clamp-2">
+                                                                    {mission.description}
+                                                                </CardDescription>
+                                                            </div>
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <Badge variant="outline" className="text-[8px] border-zinc-800 text-zinc-600 uppercase">
+                                                                    {mission.status}
+                                                                </Badge>
+                                                                <div className="flex items-center gap-1 text-yellow-500">
+                                                                    <Award className="w-3 h-3" />
+                                                                    <span className="text-[10px] font-bold font-mono">{mission.xp} XP</span>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div className="space-y-1 flex-1">
-                                                            <CardTitle className="text-sm font-bold text-zinc-300 group-hover:text-white transition-colors">
-                                                                {mission.title}
-                                                            </CardTitle>
-                                                            <CardDescription className="text-[11px] text-zinc-500 leading-normal line-clamp-2">
-                                                                {mission.description}
-                                                            </CardDescription>
-                                                        </div>
-                                                        <Badge variant="outline" className="text-[8px] border-zinc-800 text-zinc-600 uppercase">
-                                                            {mission.status}
-                                                        </Badge>
+
+                                                        {/* Pending Mission Actions */}
+                                                        {mission.status === 'pending' && (
+                                                            <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() => acceptMission.mutate({ missionId: mission.id })}
+                                                                    disabled={acceptMission.isPending}
+                                                                    className="flex-1 bg-green-600/10 hover:bg-green-600/20 text-green-400 border border-green-500/20 h-8 text-xs"
+                                                                >
+                                                                    <CheckCircle2 className="w-3 h-3 mr-1" /> Accept
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => rejectMission.mutate({ missionId: mission.id })}
+                                                                    disabled={rejectMission.isPending}
+                                                                    className="flex-1 hover:bg-red-500/10 text-red-400 h-8 text-xs"
+                                                                >
+                                                                    <X className="w-3 h-3 mr-1" /> Reject
+                                                                </Button>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Active Mission Progress */}
+                                                        {mission.status === 'active' && (
+                                                            <div className="space-y-2 pt-2 border-t border-zinc-800">
+                                                                <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                                                                    <span>PROGRESS</span>
+                                                                    <span className="text-green-400">{mission.progress}%</span>
+                                                                </div>
+                                                                <div className="relative h-2 bg-zinc-900 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300"
+                                                                        style={{ width: `${mission.progress}%` }}
+                                                                    />
+                                                                </div>
+                                                                <div className="flex gap-2 pt-2">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() => updateMissionProgress.mutate({
+                                                                            missionId: mission.id,
+                                                                            progress: Math.min(100, mission.progress + 25)
+                                                                        })}
+                                                                        disabled={mission.progress >= 100}
+                                                                        className="flex-1 bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-white h-7 text-[10px]"
+                                                                    >
+                                                                        +25%
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => completeMission.mutate({ missionId: mission.id })}
+                                                                        disabled={mission.progress < 100 || completeMission.isPending}
+                                                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white h-7 text-[10px] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    >
+                                                                        {completeMission.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : `Complete (+${mission.xp} XP)`}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Completed Mission */}
+                                                        {mission.status === 'completed' && (
+                                                            <div className="pt-2 border-t border-zinc-800">
+                                                                <div className="flex items-center justify-center gap-2 text-green-500 text-xs font-mono">
+                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                    <span>COMPLETED - {mission.xp} XP EARNED</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </CardHeader>
                                                 </Card>
                                             </motion.div>

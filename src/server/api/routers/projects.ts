@@ -1,14 +1,19 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { projects } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 export const projectsRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.db.select().from(projects).orderBy(desc(projects.updatedAt));
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    return await ctx.db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(projects.updatedAt));
   }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.object({
       title: z.string().min(1),
       description: z.string(),
@@ -16,11 +21,10 @@ export const projectsRouter = createTRPCRouter({
       vibe: z.string(), // "chill", "focused", etc
     }))
     .mutation(async ({ ctx, input }) => {
-      // Create a mock user ID for now since auth isn't fully set up
-      const mockUserId = 1; 
+      const userId = ctx.session.user.id;
       
       return await ctx.db.insert(projects).values({
-        userId: mockUserId,
+        userId: userId,
         title: input.title,
         description: input.description,
         stack: input.stack,

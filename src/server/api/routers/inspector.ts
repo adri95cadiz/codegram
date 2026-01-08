@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -106,7 +106,7 @@ export const inspectorRouter = createTRPCRouter({
         }
     }),
 
-  cloneRepo: publicProcedure
+  cloneRepo: protectedProcedure
     .input(z.object({
         repoUrl: z.string().url(),
         targetPath: z.string(),
@@ -115,9 +115,9 @@ export const inspectorRouter = createTRPCRouter({
         if (!isSafePath(input.targetPath)) throw new Error("Unsafe path access denied.");
         
         // Get user's github token for potential private repo access
-        const mockUserId = 1;
+        const userId = ctx.session.user.id;
         const user = await ctx.db.query.users.findFirst({
-            where: (u, { eq }) => eq(u.id, mockUserId)
+            where: (u, { eq }) => eq(u.id, userId)
         });
 
         const { exec } = await import("child_process");

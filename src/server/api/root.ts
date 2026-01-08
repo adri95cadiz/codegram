@@ -4,6 +4,7 @@ import { projectsRouter } from "./routers/projects";
 import { inspectorRouter } from "./routers/inspector";
 import { missionsRouter } from "./routers/missions";
 import { githubRouter } from "./routers/github";
+import { userRouter } from "./routers/user";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   inspector: inspectorRouter,
   missions: missionsRouter,
   github: githubRouter,
+  user: userRouter,
 });
 
 export type AppRouter = typeof appRouter;

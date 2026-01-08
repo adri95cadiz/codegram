@@ -224,11 +224,13 @@ export const feedRouter = createTRPCRouter({
 
 
 
+
+
   getLikes: publicProcedure.query(async ({ ctx }) => {
-    // Mock user ID for now
-    const MOCK_USER_ID = 1;
+    // Use authenticated user ID if available, otherwise use mock
+    const userId = ctx.session?.user?.id ?? 1;
     
-    return await ctx.db.select().from(likes).orderBy(desc(likes.createdAt));
+    return await ctx.db.select().from(likes).where(eq(likes.userId, userId)).orderBy(desc(likes.createdAt));
   }),
 
   toggleLike: publicProcedure
@@ -246,14 +248,11 @@ export const feedRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Real DB Insert
-      const MOCK_USER_ID = 1; // We still use mock ID until Auth is fully implemented, but data is REAL.
-      
-      // We need to upsert the user first if it doesn't exist (hack for dev)
-      // await ctx.db.insert(users).values({ id: MOCK_USER_ID, name: "Dev User", email: "dev@local" }).onConflictDoNothing();
+      // Use authenticated user ID if available, otherwise use mock
+      const userId = ctx.session?.user?.id ?? 1;
 
       await ctx.db.insert(likes).values({
-        userId: MOCK_USER_ID,
+        userId: userId,
         ideaSnapshot: input.idea,
       });
 
@@ -271,49 +270,65 @@ export const feedRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const langKey = (input.language || (ctx.language === 'es' ? 'es' : 'en'));
       
-      const systemPrompt = langKey === 'es' 
-        ? `Eres un Gerente Técnico de Proyecto Senior.
-            Objetivo: Generar 3 misiones de código accionables para el proyecto del usuario.
+      const systemPrompt = langKey === 'es'
+        ? `Eres un generador de misiones tácticas para proyectos de código.
+            
+            Contexto del Proyecto: ${input.projectContext}
+            Stack: ${input.stack}
+            
+            Genera exactamente 3 misiones específicas y accionables.
+            
+            Formato JSON:
+            {
+              "missions": [
+                {
+                  "title": "Título corto y específico",
+                  "description": "Descripción detallada de la tarea",
+                  "type": "quick" | "feature" | "architect",
+                  "xp": número (100 para quick, 300 para feature, 500 para architect)
+                }
+              ]
+            }
+            
+            Tipos de misión:
+            - quick: Tareas rápidas (refactors, tests, docs) - 100 XP
+            - feature: Nuevas funcionalidades - 300 XP
+            - architect: Cambios de arquitectura o diseño - 500 XP
             
             Reglas:
-            1. Retorna solo JSON.
-            2. Las misiones deben ser distintas:
-               - Victoria Rápida: Algo fácil (15m).
-               - Funcionalidad: Funcionalidad principal (1h).
-               - Arquitecto: Refactorización o diseño de sistemas (2h).
+            1. Misiones específicas al proyecto
+            2. Accionables y medibles
+            3. Variedad de tipos
+            4. Lenguaje técnico pero claro`
+        : `You are a tactical mission generator for code projects.
             
-            JSON Schema:
+            Project Context: ${input.projectContext}
+            Stack: ${input.stack}
+            
+            Generate exactly 3 specific, actionable missions.
+            
+            JSON Format:
             {
               "missions": [
                 {
-                  "title": "Verbo de acción + funcionalidad",
-                  "description": "Por qué y qué.",
+                  "title": "Short, specific title",
+                  "description": "Detailed task description",
                   "type": "quick" | "feature" | "architect",
-                  "xp": number
+                  "xp": number (100 for quick, 300 for feature, 500 for architect)
                 }
               ]
-            }`
-        : `You are a Senior Technical Project Manager.
-            Goal: Generate 3 actionable coding missions for the user's project.
+            }
+            
+            Mission Types:
+            - quick: Quick tasks (refactors, tests, docs) - 100 XP
+            - feature: New functionality - 300 XP
+            - architect: Architecture/design changes - 500 XP
             
             Rules:
-            1. Return JSON only.
-            2. Missions must be distinct:
-               - Quick Win: Something easy (15m).
-               - Feature: Core functionality (1h).
-               - Architect: Refactor or system design (2h).
-            
-            JSON Schema:
-            {
-              "missions": [
-                {
-                  "title": "Action verb + feature",
-                  "description": "Why and what.",
-                  "type": "quick" | "feature" | "architect",
-                  "xp": number
-                }
-              ]
-            }`;
+            1. Project-specific missions
+            2. Actionable and measurable
+            3. Variety of types
+            4. Technical but clear language`;
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",

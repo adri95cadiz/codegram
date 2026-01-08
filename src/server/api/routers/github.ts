@@ -1,13 +1,13 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const githubRouter = createTRPCRouter({
-  saveToken: publicProcedure
+  saveToken: protectedProcedure
     .input(z.object({ token: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const mockUserId = 1; // Temporary: using mock user until full auth
+      const userId = ctx.session.user.id;
       
       // Basic validation: try to fetch user info from GitHub
       try {
@@ -27,7 +27,7 @@ export const githubRouter = createTRPCRouter({
             githubToken: input.token,
             githubUsername: userData.login,
           })
-          .where(eq(users.id, mockUserId));
+          .where(eq(users.id, userId));
 
         return { success: true, username: userData.login };
       } catch (error) {
@@ -35,10 +35,10 @@ export const githubRouter = createTRPCRouter({
       }
     }),
 
-  getRepos: publicProcedure.query(async ({ ctx }) => {
-    const mockUserId = 1;
+  getRepos: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
     const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, mockUserId),
+      where: eq(users.id, userId),
     });
 
     if (!user?.githubToken) return [];
@@ -66,10 +66,10 @@ export const githubRouter = createTRPCRouter({
     }
   }),
 
-  getConnectionStatus: publicProcedure.query(async ({ ctx }) => {
-    const mockUserId = 1;
+  getConnectionStatus: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
     const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, mockUserId),
+      where: eq(users.id, userId),
     });
 
     return {
@@ -78,12 +78,12 @@ export const githubRouter = createTRPCRouter({
     };
   }),
 
-  disconnect: publicProcedure.mutation(async ({ ctx }) => {
-    const mockUserId = 1;
+  disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
     await ctx.db
       .update(users)
       .set({ githubToken: null, githubUsername: null })
-      .where(eq(users.id, mockUserId));
+      .where(eq(users.id, userId));
     return { success: true };
   }),
 });
