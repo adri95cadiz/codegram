@@ -4,13 +4,17 @@ import { projects } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 export const projectsRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    // Return empty array if not authenticated
+    if (!ctx.session?.user?.id) {
+      return [];
+    }
+    
     const userId = ctx.session.user.id;
-    return await ctx.db
-      .select()
-      .from(projects)
-      .where(eq(projects.userId, userId))
-      .orderBy(desc(projects.updatedAt));
+    return await ctx.db.query.projects.findMany({
+      where: eq(projects.userId, userId),
+      orderBy: [desc(projects.createdAt)],
+    });
   }),
 
   create: protectedProcedure

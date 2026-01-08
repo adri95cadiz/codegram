@@ -9,6 +9,9 @@ import { api } from "@/trpc/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ProjectModal } from "@/components/create/ProjectModal";
+import { useSession } from "../auth/SessionProvider";
+import { SignInButton } from "../auth/SignInButton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Idea {
     id: string;
@@ -21,8 +24,10 @@ interface Idea {
 }
 
 export function IdeaCard({ idea }: { idea: Idea }) {
+    const { data: session } = useSession();
     const [isLiked, setIsLiked] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showSignInDialog, setShowSignInDialog] = useState(false);
     const utils = api.useUtils();
 
     const toggleLike = api.feed.toggleLike.useMutation({
@@ -37,6 +42,10 @@ export function IdeaCard({ idea }: { idea: Idea }) {
     });
 
     const handleLike = () => {
+        if (!session) {
+            setShowSignInDialog(true);
+            return;
+        }
         if (isLiked) return;
         toggleLike.mutate({ idea });
     };
@@ -75,6 +84,19 @@ export function IdeaCard({ idea }: { idea: Idea }) {
 
     return (
         <>
+            <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+                <DialogContent className="bg-zinc-950 border-zinc-800 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black">Sign in to Save Ideas</DialogTitle>
+                        <DialogDescription className="text-zinc-400">
+                            Create an account to save your favorite project ideas and start building.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col items-center gap-4 py-4">
+                        <SignInButton />
+                    </div>
+                </DialogContent>
+            </Dialog>
             <ProjectModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}

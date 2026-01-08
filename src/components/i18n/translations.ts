@@ -46,6 +46,11 @@ export const translations = {
             next_step: "Recommended Next Step",
             suggested_changes: "Suggested Changes",
             impact: "Impact",
+            remixing: "Remixing idea...",
+            remix_success: "New variation created!",
+            remix_error: "Failed to remix idea",
+            copied_clipboard: "Copied to clipboard!",
+            share_error: "Failed to share",
         },
         github: {
             connect_title: "Connect GitHub",
@@ -152,6 +157,11 @@ export const translations = {
             next_step: "Siguiente Paso Recomendado",
             suggested_changes: "Cambios Sugeridos",
             impact: "Impacto",
+            remixing: "Remezclando idea...",
+            remix_success: "¡Nueva variación creada!",
+            remix_error: "Error al remezclar idea",
+            copied_clipboard: "¡Copiado al portapapeles!",
+            share_error: "Error al compartir",
         },
         github: {
             connect_title: "Conectar GitHub",

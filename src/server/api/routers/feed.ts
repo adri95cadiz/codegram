@@ -258,6 +258,158 @@ export const feedRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  remixIdea: publicProcedure
+    .input(
+      z.object({
+        originalIdea: z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+          stack: z.string(),
+          effort: z.string(),
+          why: z.string(),
+          vibe: z.string(),
+        }),
+        language: z.enum(["en", "es"]).optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const langKey = (input.language || (ctx.language === 'es' ? 'es' : 'en'));
+      const mode = input.originalIdea.vibe as "chaos" | "serious" | "learning" | "startup" | "artist" | "gamedev";
+
+      const systemPrompts = {
+        en: {
+            chaos: `You are a chaotic good senior engineer.
+                Goal: Replace doom scrolling with "doom coding".
+                Rules:
+                1. Ideas must be technically interesting but slightly unhinged.
+                2. No generic "To-Do List".
+                3. Focus on: Visuals, weird APIs, retro tech.
+                4. Tone: Punchy, excited.`,
+            serious: `You are a pragmatic CTO.
+                Goal: Build portfolio-worthy products.
+                Rules:
+                1. Ideas must be viable SaaS or useful tools.
+                2. Focus on: Clean architecture, market value.
+                3. Tone: Professional, clear.`,
+            learning: `You are a CS professor.
+                Goal: Teach concepts.
+                Rules:
+                1. Focus on algorithms, data structures, low-level.
+                2. Tone: Educational, precise.`,
+            startup: `You are a YC Partner.
+                Goal: Find the next unicorn.
+                Rules:
+                1. Ideas must have high growth potential.
+                2. Focus on: B2B, Marketplaces, AI.
+                3. Tone: Demanding, visionary.`,
+            artist: `You are a Creative Technologist.
+                Goal: Make digital art.
+                Rules:
+                1. Focus on: WebGL, Shaders, Generative Art, Audio.
+                2. Tone: Abstract, inspiring.`,
+            gamedev: `You are an Indie Game Dev.
+                Goal: Make fun mechanics.
+                Rules:
+                1. Focus on: Godot, Unity, WebGPU, Physics.
+                2. Tone: Playful, technical.`
+        },
+        es: {
+            chaos: `Eres un ingeniero senior caótico bueno.
+                Objetivo: Reemplazar el "doom scrolling" con "doom coding".
+                Reglas:
+                1. Las ideas deben ser técnicamente interesantes pero un poco locas.
+                2. Nada de "Listas de Tareas" genéricas.
+                3. Enfoque: Visuales, APIs raras, tecnología retro.
+                4. Tono: Contundente, emocionado.`,
+            serious: `Eres un CTO pragmático.
+                Objetivo: Construir productos dignos de portafolio.
+                Reglas:
+                1. Ideas viables para SaaS o herramientas útiles.
+                2. Enfoque: Arquitectura limpia, valor de mercado.
+                3. Tono: Profesional, claro.`,
+            learning: `Eres un profesor de Ciencias de la Computación.
+                Objetivo: Enseñar conceptos.
+                Reglas:
+                1. Enfoque en algoritmos, estructuras de datos, bajo nivel.
+                2. Tono: Educativo, preciso.`,
+            startup: `Eres un Socio de YC.
+                Objetivo: Encontrar el próximo unicornio.
+                Reglas:
+                1. Ideas con alto potencial de crecimiento.
+                2. Enfoque: B2B, Marketplaces, IA.
+                3. Tono: Exigente, visionario.`,
+            artist: `Eres un Tecnólogo Creativo.
+                Objetivo: Crear arte digital.
+                Reglas:
+                1. Enfoque: WebGL, Shaders, Arte Generativo, Audio.
+                2. Tono: Abstracto, inspirador.`,
+            gamedev: `Eres un Desarrollador de Juegos Indie.
+                Objetivo: Crear mecánicas divertidas.
+                Reglas:
+                1. Enfoque: Godot, Unity, WebGPU, Físicas.
+                2. Tono: Juguetón, técnico.`
+        }
+      };
+
+      const selectedSystemPrompts = systemPrompts[langKey];
+
+      const remixPrompt = langKey === 'es'
+        ? `Genera una VARIACIÓN de esta idea. Mantén el concepto central pero cambia la ejecución, stack o enfoque.
+
+Original:
+Título: ${input.originalIdea.title}
+Descripción: ${input.originalIdea.description}
+Stack: ${input.originalIdea.stack}
+
+Crea algo similar pero diferente. Mismo espíritu, nueva dirección.`
+        : `Generate a VARIATION of this idea. Keep the core concept but change the execution, stack, or approach.
+
+Original:
+Title: ${input.originalIdea.title}
+Description: ${input.originalIdea.description}
+Stack: ${input.originalIdea.stack}
+
+Create something similar but different. Same spirit, new direction.`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `${selectedSystemPrompts[mode]}
+            
+            General Rules:
+            1. Return JSON only.
+            2. Be concise.
+            3. IMPORTANT: OUTPUT LANGUAGE: "${langKey === 'es' ? 'Spanish' : 'English'}". Ensure title, description, and why are in this language.
+            
+            Schema:
+            {
+              "title": "Short catchy title",
+              "description": "2 sentence pitch.",
+              "stack": "3-4 tech keywords",
+              "effort": "Estimate of time and resources required (max 3-4 words).",
+              "why": "Why this is worth building."
+            }`
+          },
+          {
+            role: "user",
+            content: remixPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const ideaContent = JSON.parse(completion.choices[0].message.content || "{}");
+
+      return {
+        id: Math.random().toString(36).substring(7),
+        ...ideaContent,
+        vibe: mode,
+      };
+    }),
     
   generateMissions: publicProcedure
     .input(

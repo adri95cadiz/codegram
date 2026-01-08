@@ -25,6 +25,8 @@ import { Folder, GitBranch, Github, Link as LinkIcon, RefreshCcw, CheckCircle2, 
 import { toast } from "sonner";
 import { FolderSelector } from "../create/FolderSelector";
 import { GitConnector } from "../create/GitConnector";
+import { useSession } from "../auth/SessionProvider";
+import { SignInButton } from "../auth/SignInButton";
 
 interface ProjectsViewProps {
     onOpenEditor?: (path: string) => void;
@@ -39,6 +41,7 @@ interface Mission {
 
 export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
     const { t, language } = useLanguage();
+    const { data: session, status } = useSession();
     const [selectedProject, setSelectedProject] = useState<string | null>(null);
     const [isAddMissionOpen, setIsAddMissionOpen] = useState(false);
     const [newMissionTitle, setNewMissionTitle] = useState("");
@@ -53,6 +56,40 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
     const [targetFolder, setTargetFolder] = useState("");
 
     const utils = api.useUtils();
+
+    // Show sign-in prompt if not authenticated
+    if (status === "loading") {
+        return (
+            <div className="h-screen w-full bg-black text-white flex items-center justify-center pt-16 pb-24">
+                <Loader2 className="w-8 h-8 text-zinc-600 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!session) {
+        return (
+            <div className="h-screen w-full bg-black text-white flex flex-col items-center justify-center px-6 pt-16 pb-24">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center max-w-md"
+                >
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-green-500 to-emerald-500 p-[2px] mx-auto mb-6">
+                        <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                            <Terminal className="w-12 h-12 text-white" />
+                        </div>
+                    </div>
+                    <h1 className="text-3xl font-black tracking-tight mb-4">
+                        Sign in to Access Projects
+                    </h1>
+                    <p className="text-zinc-400 mb-8">
+                        Connect your GitHub account to create and manage your coding projects.
+                    </p>
+                    <SignInButton />
+                </motion.div>
+            </div>
+        );
+    }
 
     // Data Fetching
     const { data: projects, isLoading } = api.projects.getAll.useQuery();

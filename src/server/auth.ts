@@ -3,7 +3,7 @@ import GitHubProvider from "next-auth/providers/github";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/server/db";
 import { env } from "@/env";
-import type { AdapterAccount } from "next-auth/adapters";
+import { users, accounts, sessions, verificationTokens } from "@/server/db/schema";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -14,16 +14,10 @@ import type { AdapterAccount } from "next-auth/adapters";
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
-      id: number;
+      id: string;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
-  }
-
-  interface User {
-    id: number;
-    // ...other properties
-    // role: UserRole;
   }
 }
 
@@ -33,14 +27,26 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  debug: true, // Enable debug mode to see errors
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: ({ session, user }) => {
+      console.log("Session callback - user:", user);
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: String(user.id), // Convert to string for compatibility
+        },
+      };
+    },
+  },
+  events: {
+    signIn: async (message) => {
+      console.log("✅ Sign in event:", message);
+    },
+    createUser: async (message) => {
+      console.log("✅ User created:", message);
+    },
   },
   adapter: DrizzleAdapter(db),
   providers: [

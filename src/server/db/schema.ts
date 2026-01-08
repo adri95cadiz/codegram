@@ -137,6 +137,7 @@ export const feedHistory = createTable(
 export const accounts = createTable(
   "account",
   {
+    id: serial("id").primaryKey(),
     userId: integer("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
