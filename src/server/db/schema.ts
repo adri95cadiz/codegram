@@ -33,8 +33,6 @@ export const users = createTable(
     ),
     githubToken: text("github_token"),
     githubUsername: varchar("github_username", { length: 256 }),
-    totalXp: integer("total_xp").default(0).notNull(),
-    level: integer("level").default(1).notNull(),
   },
   (example) => [
     index("name_idx").on(example.name),
@@ -107,7 +105,6 @@ export const missions = createTable(
     description: text("description").notNull(),
     status: varchar("status", { length: 50 }).default("pending").notNull(), // pending, active, completed
     progress: integer("progress").default(0).notNull(),
-    xp: integer("xp").default(100).notNull(), // XP reward for completing mission
     
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -134,4 +131,50 @@ export const feedHistory = createTable(
   (example) => [
     index("feed_history_user_id_idx").on(example.userId),
   ]
+);
+
+// NextAuth.js Tables
+export const accounts = createTable(
+  "account",
+  {
+    userId: integer("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: varchar("type", { length: 255 }).notNull(),
+    provider: varchar("provider", { length: 255 }).notNull(),
+    providerAccountId: varchar("providerAccountId", { length: 255 }).notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: varchar("token_type", { length: 255 }),
+    scope: varchar("scope", { length: 255 }),
+    id_token: text("id_token"),
+    session_state: varchar("session_state", { length: 255 }),
+  },
+  (account) => [
+    index("account_userId_idx").on(account.userId),
+  ]
+);
+
+export const sessions = createTable(
+  "session",
+  {
+    sessionToken: varchar("sessionToken", { length: 255 }).notNull().primaryKey(),
+    userId: integer("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expires: timestamp("expires", { withTimezone: true }).notNull(),
+  },
+  (session) => [
+    index("session_userId_idx").on(session.userId),
+  ]
+);
+
+export const verificationTokens = createTable(
+  "verificationToken",
+  {
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    token: varchar("token", { length: 255 }).notNull(),
+    expires: timestamp("expires", { withTimezone: true }).notNull(),
+  }
 );
