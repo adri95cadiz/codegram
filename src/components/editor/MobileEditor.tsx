@@ -1,4 +1,5 @@
 import React from 'react';
+// @ts-ignore
 import Editor, { Loader } from '@monaco-editor/react';
 
 // Configure Monaco loader to use from CDN or local if preferred, 

@@ -7,7 +7,7 @@ export const userRouter = createTRPCRouter({
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, userId),
+      where: (u, { eq }) => eq(u.id, userId),
     });
 
     if (!user) {
@@ -21,6 +21,10 @@ export const userRouter = createTRPCRouter({
       image: user.image,
       githubUsername: user.githubUsername,
       createdAt: user.createdAt,
+      openaiKey: user.openaiKey,
+      anthropicKey: user.anthropicKey,
+      geminiKey: user.geminiKey,
+      preferredModel: user.preferredModel,
     };
   }),
 
@@ -37,6 +41,31 @@ export const userRouter = createTRPCRouter({
         .update(users)
         .set({
           name: input.name,
+        })
+        .where(eq(users.id, userId));
+
+      return { success: true };
+    }),
+
+  updateLLMKeys: protectedProcedure
+    .input(
+      z.object({
+        openaiKey: z.string().optional(),
+        anthropicKey: z.string().optional(),
+        geminiKey: z.string().optional(),
+        preferredModel: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db
+        .update(users)
+        .set({
+          openaiKey: input.openaiKey,
+          anthropicKey: input.anthropicKey,
+          geminiKey: input.geminiKey,
+          preferredModel: input.preferredModel,
         })
         .where(eq(users.id, userId));
 

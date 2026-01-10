@@ -5,11 +5,12 @@ import { api } from "@/trpc/react";
 import { IdeaCard } from "./IdeaCard";
 import { ProjectPulseCard } from "./ProjectPulseCard";
 import { VibeBar } from "./VibeBar";
-import { Loader2 } from "lucide-react";
 
 import { useLanguage } from "../i18n/LanguageContext";
+import { Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export function DiscoverFeed({ onOpenEditor }: { onOpenEditor: () => void }) {
+export function DiscoverFeed({ onOpenEditor, onNavigateToProfile }: { onOpenEditor: () => void; onNavigateToProfile?: () => void }) {
     const { t, language } = useLanguage();
     // Load initial state from localStorage if available, otherwise default
     const [vibe, setVibe] = useState("");
@@ -40,7 +41,7 @@ export function DiscoverFeed({ onOpenEditor }: { onOpenEditor: () => void }) {
     }, [mode, duration, vibe, isInitialized]);
 
     // Query hooks MUST be called unconditionally at the top level
-    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, error } =
         api.feed.generateIdea.useInfiniteQuery(
             { vibe, mode, duration, language: language as "en" | "es" },
             {
@@ -120,8 +121,19 @@ export function DiscoverFeed({ onOpenEditor }: { onOpenEditor: () => void }) {
                     <SkeletonIdeaCard />
                 </div>
             ) : status === 'error' ? (
-                <div className="h-full w-full flex items-center justify-center text-destructive">
-                    {t("feed.error_loading")}
+                <div className="h-full w-full flex flex-col items-center justify-center text-center px-10">
+                    <Zap className="w-12 h-12 text-yellow-500 mb-4 animate-pulse" />
+                    <h2 className="text-xl font-bold text-white mb-2">AI Configuration Required</h2>
+                    <p className="text-zinc-400 text-sm mb-6 max-w-xs">
+                        {error?.message || "We couldn't reach the AI brain. Please check your API keys."}
+                    </p>
+                    <Button
+                        variant="outline"
+                        className="rounded-full border-zinc-800 text-zinc-800 hover:text-white hover:bg-zinc-800"
+                        onClick={() => onNavigateToProfile?.()}
+                    >
+                        Go to AI Settings
+                    </Button>
                 </div>
             ) : (
                 <>

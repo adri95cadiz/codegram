@@ -9,7 +9,7 @@ import { useLanguage } from "@/components/i18n/LanguageContext";
 
 interface ProjectPulseProps {
     project: {
-        id: number;
+        id: string;
         title: string;
         description: string;
         stack: string;

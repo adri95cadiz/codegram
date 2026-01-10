@@ -22,10 +22,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-export function ProfileView() {
+import { useEffect } from "react";
+
+export function ProfileView({ openAISettings, onSettingsClose }: { openAISettings?: boolean; onSettingsClose?: () => void } = {}) {
     const { data: session, status } = useSession();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [editName, setEditName] = useState("");
+
+    const [openaiKey, setOpenaiKey] = useState("");
+    const [anthropicKey, setAnthropicKey] = useState("");
+    const [geminiKey, setGeminiKey] = useState("");
+    const [preferredModel, setPreferredModel] = useState("gpt-4o-mini");
 
     const { data: profile } = api.user.getProfile.useQuery(undefined, {
         enabled: !!session,
@@ -53,6 +61,41 @@ export function ProfileView() {
     const handleSaveProfile = () => {
         updateProfileMutation.mutate({ name: editName });
     };
+
+    const updateKeysMutation = api.user.updateLLMKeys.useMutation({
+        onSuccess: () => {
+            toast.success("AI keys updated!");
+            setIsSettingsOpen(false);
+            onSettingsClose?.();
+        },
+        onError: (err) => {
+            toast.error(`Failed to update keys: ${err.message}`);
+        }
+    });
+
+    const handleOpenSettings = () => {
+        setOpenaiKey(profile?.openaiKey ?? "");
+        setAnthropicKey(profile?.anthropicKey ?? "");
+        setGeminiKey(profile?.geminiKey ?? "");
+        setPreferredModel(profile?.preferredModel ?? "gpt-4o-mini");
+        setIsSettingsOpen(true);
+    };
+
+    const handleSaveKeys = () => {
+        updateKeysMutation.mutate({
+            openaiKey,
+            anthropicKey,
+            geminiKey,
+            preferredModel,
+        });
+    };
+
+    // Auto-open AI settings if requested
+    useEffect(() => {
+        if (openAISettings && profile) {
+            handleOpenSettings();
+        }
+    }, [openAISettings, profile]);
 
     // Show sign-in prompt if not authenticated
     if (status === "loading") {
@@ -135,7 +178,7 @@ export function ProfileView() {
                     <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-full border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                        className="rounded-full border-zinc-700 text-zinc-800 hover:text-white hover:bg-zinc-800"
                         onClick={handleEditProfile}
                     >
                         <Edit2 className="w-4 h-4 mr-2" /> Edit Profile
@@ -143,7 +186,15 @@ export function ProfileView() {
                     <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-full border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                        className="rounded-full border-zinc-700 text-zinc-800 hover:text-white hover:bg-zinc-800"
+                        onClick={handleOpenSettings}
+                    >
+                        <Settings className="w-4 h-4 mr-2" /> AI Settings
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border-zinc-700 text-zinc-800 hover:text-white hover:bg-zinc-800"
                         onClick={() => signOut()}
                     >
                         <LogOut className="w-4 h-4 mr-2" /> Sign Out
@@ -156,10 +207,10 @@ export function ProfileView() {
                 <Tabs defaultValue="collection" className="w-full h-full flex flex-col">
                     <div className="px-6 pt-6 pb-2">
                         <TabsList className="w-full bg-zinc-900/50 p-1 rounded-full grid grid-cols-2">
-                            <TabsTrigger value="collection" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-black">
+                            <TabsTrigger value="collection" className="rounded-full text-white data-[state=active]:bg-white data-[state=active]:text-black">
                                 <Heart className="w-4 h-4 mr-2" /> Collection
                             </TabsTrigger>
-                            <TabsTrigger value="stats" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-black">
+                            <TabsTrigger value="stats" className="rounded-full text-white data-[state=active]:bg-white data-[state=active]:text-black">
                                 <Trophy className="w-4 h-4 mr-2" /> Achievements
                             </TabsTrigger>
                         </TabsList>
@@ -219,6 +270,100 @@ export function ProfileView() {
                             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
                         >
                             {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* AI Settings Dialog */}
+            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Zap className="w-5 h-5 text-yellow-500" />
+                            Bring Your Own Token (BYOT)
+                        </DialogTitle>
+                        <DialogDescription className="text-zinc-400">
+                            Configure your personal AI keys to power the feed and vibe coding.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-6 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="openai" className="text-zinc-300">OpenAI API Key</Label>
+                            <Input
+                                id="openai"
+                                type="password"
+                                value={openaiKey}
+                                onChange={(e) => setOpenaiKey(e.target.value)}
+                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:ring-purple-500"
+                                placeholder="sk-..."
+                            />
+                            <p className="text-[10px] text-zinc-500 italic">
+                                Used for feed generation and Vibe Coding.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="anthropic" className="text-zinc-300">Anthropic Key (Optional)</Label>
+                            <Input
+                                id="anthropic"
+                                type="password"
+                                value={anthropicKey}
+                                onChange={(e) => setAnthropicKey(e.target.value)}
+                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:ring-purple-500"
+                                placeholder="sk-ant-..."
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="gemini" className="text-zinc-300">Gemini Key (Optional)</Label>
+                            <Input
+                                id="gemini"
+                                type="password"
+                                value={geminiKey}
+                                onChange={(e) => setGeminiKey(e.target.value)}
+                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:ring-purple-500"
+                                placeholder="AIza..."
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="model" className="text-zinc-300">Preferred AI Model</Label>
+                            <select
+                                id="model"
+                                value={preferredModel}
+                                onChange={(e) => setPreferredModel(e.target.value)}
+                                className="w-full bg-zinc-800 border-zinc-700 text-white rounded-md p-2 focus:ring-purple-500 focus:outline-none"
+                            >
+                                <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cheap)</option>
+                                <option value="gpt-4o">GPT-4o (High Intelligence)</option>
+                                <option value="o1-preview">OpenAI o1 Preview (Reasoning)</option>
+                                <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet (Coming Soon)</option>
+                            </select>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                            <p className="text-[11px] text-orange-400 leading-tight">
+                                <strong>Privacy Note:</strong> Your keys are stored in our secure database. We only use them to make AI requests on your behalf.
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsSettingsOpen(false)}
+                            className="border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveKeys}
+                            disabled={updateKeysMutation.isPending}
+                            className="bg-white text-black hover:bg-zinc-200 font-bold"
+                        >
+                            {updateKeysMutation.isPending ? "Configuring..." : "Update Keys"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

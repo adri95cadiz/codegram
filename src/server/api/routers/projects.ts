@@ -2,6 +2,10 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { projects } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { getAIClient } from "@/server/ai-utils";
+import { promises as fs } from "fs";
+import * as path from "path";
 
 export const projectsRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -9,10 +13,10 @@ export const projectsRouter = createTRPCRouter({
     if (!ctx.session?.user?.id) {
       return [];
     }
-    
+
     const userId = ctx.session.user.id;
     return await ctx.db.query.projects.findMany({
-      where: eq(projects.userId, userId),
+      where: (p, { eq }) => eq(p.userId, userId),
       orderBy: [desc(projects.createdAt)],
     });
   }),
@@ -26,8 +30,9 @@ export const projectsRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       return await ctx.db.insert(projects).values({
+        id: Math.random().toString(36).substring(7),
         userId: userId,
         title: input.title,
         description: input.description,
@@ -40,7 +45,7 @@ export const projectsRouter = createTRPCRouter({
 
   updateStatus: publicProcedure
     .input(z.object({
-      id: z.number(),
+      id: z.string(),
       status: z.string(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -52,7 +57,7 @@ export const projectsRouter = createTRPCRouter({
 
   delete: publicProcedure
     .input(z.object({
-      id: z.number(),
+      id: z.string(),
     }))
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.delete(projects).where(eq(projects.id, input.id));
@@ -60,44 +65,44 @@ export const projectsRouter = createTRPCRouter({
 
   initializeProject: publicProcedure
     .input(z.object({
-        id: z.number(),
-        localPath: z.string(),
-        githubUrl: z.string().optional(),
+      id: z.string(),
+      localPath: z.string(),
+      githubUrl: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-        // imports usually go at top, but for this refactor we put them here or move them up
-        // ideally move to top of file
-        const { promises: fs } = await import("fs");
-        const { OpenAI } = await import("openai");
-        const path = await import("path");
-        const { env } = await import("@/env");
-        
-        const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+      let ai;
+      try {
+        ai = await getAIClient(ctx.session?.user?.id ?? "1", ctx.db);
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: error.message || "AI configuration error",
+        });
+      }
 
-        // 1. Scan Files
-        // Try to read package.json and README.md
-        let packageJson = "{}";
-        let readme = "No README found.";
-        let fileStructure = "Unknown";
-        
-        try {
-             // Basic list of top-level files
-             const files = await fs.readdir(input.localPath);
-             fileStructure = files.slice(0, 20).join(", ");
-             
-             if (files.includes("package.json")) {
-                 packageJson = await fs.readFile(path.join(input.localPath, "package.json"), "utf-8");
-             }
-             if (files.includes("README.md")) {
-                 readme = await fs.readFile(path.join(input.localPath, "README.md"), "utf-8");
-             }
-        } catch (e) {
-            console.error("Failed to read project files", e);
-            // Continue even if read fails, we'll infer from what we have
+      const { client: openai, model } = ai;
+
+      // 1. Scan Files
+      let packageJson = "{}";
+      let readme = "No README found.";
+      let fileStructure = "Unknown";
+
+      try {
+        const files = await fs.readdir(input.localPath);
+        fileStructure = files.slice(0, 20).join(", ");
+
+        if (files.includes("package.json")) {
+          packageJson = await fs.readFile(path.join(input.localPath, "package.json"), "utf-8");
         }
+        if (files.includes("README.md")) {
+          readme = await fs.readFile(path.join(input.localPath, "README.md"), "utf-8");
+        }
+      } catch (e) {
+        console.error("Failed to read project files", e);
+      }
 
-        // 2. AI Analysis "The Soul Search"
-        const prompt = `
+      // 2. AI Analysis "The Soul Search"
+      const prompt = `
             Analyze this project context and define its "Soul".
             
             Files: ${fileStructure}
@@ -111,41 +116,40 @@ export const projectsRouter = createTRPCRouter({
                 "roadmap": ["3-5 actionable next steps for a developer"]
             }
         `;
-        
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "system", content: "You are a Senior Tech Lead / Game Master. Output valid JSON." }, { role: "user", content: prompt }],
-            response_format: { type: "json_object" }
-        });
-        
-        const analysis = JSON.parse(completion.choices[0].message.content || "{}");
-        
-        const analysisData = {
-            vibe: analysis.vibe || "Mystery Code",
-            objectives: analysis.objectives || ["Explore the codebase"],
-            lastScanned: new Date(),
-            roadmap: analysis.roadmap || []
-        };
 
-        // 3. Update DB
+      try {
+        const completion = await openai.chat.completions.create({
+          model: model,
+          messages: [{ role: "system", content: "You are a Senior Tech Lead / Game Master. Output valid JSON." }, { role: "user", content: prompt }],
+          response_format: { type: "json_object" }
+        });
+
+        const analysis = JSON.parse(completion.choices[0].message.content || "{}");
+
         const soulData = {
-            personality: analysis.vibe || "Mystery Code",
-            context: analysis.objectives ? analysis.objectives.join("\n") : "Explore the codebase",
-            knowledge_base: analysis.roadmap || [],
-            lastScanned: new Date(),
+          personality: analysis.vibe || "Mystery Code",
+          context: analysis.objectives ? analysis.objectives.join("\n") : "Explore the codebase",
+          knowledge_base: analysis.roadmap || [],
+          lastScanned: new Date(),
         };
 
         await ctx.db
-            .update(projects)
-            .set({ 
-                localPath: input.localPath,
-                githubUrl: input.githubUrl,
-                soul: soulData,
-                status: "active",
-                nextStep: analysis.roadmap?.[0] || "Explore"
-            })
-            .where(eq(projects.id, input.id));
+          .update(projects)
+          .set({
+            localPath: input.localPath,
+            githubUrl: input.githubUrl,
+            soul: soulData,
+            status: "active",
+            nextStep: analysis.roadmap?.[0] || "Explore"
+          })
+          .where(eq(projects.id, input.id));
 
         return { success: true, soul: soulData };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Failed to analyze project",
+        });
+      }
     }),
 });

@@ -1,9 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
     const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
     const [callbackUrl, setCallbackUrl] = useState<string | null>(null);
@@ -49,5 +49,13 @@ export default function AuthErrorPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function AuthErrorPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black text-white p-8 flex items-center justify-center">Loading authentication details...</div>}>
+            <AuthErrorContent />
+        </Suspense>
     );
 }

@@ -346,7 +346,7 @@ export function EditorView({ isOpen, onClose, projectRoot }: EditorViewProps) {
 // File Tree Components with improved styling
 // ----------------------------------------------------------------------
 
-function FileIcon({ name, type, className }: { name: string, type?: "file" | "directory", className?: string }) {
+function FileIcon({ name, type, className }: { name: string, type?: string, className?: string }) {
     if (type === 'directory') return <Folder className={`text-blue-400 ${className}`} fill="currentColor" fillOpacity={0.2} />;
 
     if (name.endsWith('.tsx')) return <FileCode className={`text-blue-400 ${className}`} />;

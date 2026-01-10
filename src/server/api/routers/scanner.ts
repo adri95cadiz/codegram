@@ -1,11 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { OpenAI } from "openai";
-import { env } from "@/env";
-
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-});
+import { getAIClient } from "@/server/ai-utils";
+import { TRPCError } from "@trpc/server";
 
 export const scannerRouter = createTRPCRouter({
   scanCode: publicProcedure
@@ -64,69 +60,88 @@ export const scannerRouter = createTRPCRouter({
                 ]
             }`;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: `Analyze this code:\n\n${input.code}`
-          }
-        ],
-        response_format: { type: "json_object" },
-      });
-
-      let content = completion.choices[0].message.content || "{ \"anomalies\": [] }";
-      // Sanitize markdown
-      content = content.replace(/```json/gi, "").replace(/```/g, "").trim();
-
-      let response;
+      let ai;
       try {
-        response = JSON.parse(content);
-      } catch (e) {
-        console.error("Scanner parse error", e);
-        response = { anomalies: [] };
+        ai = await getAIClient(ctx.session?.user?.id ?? "1", ctx.db);
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: error.message || "AI configuration error",
+        });
       }
 
-      return {
-        anomalies: response.anomalies || []
-      };
+      const { client: openai, model } = ai;
+
+      try {
+        const completion = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: `Analyze this code:\n\n${input.code}`
+            }
+          ],
+          response_format: { type: "json_object" },
+        });
+
+        let content = completion.choices[0].message.content || "{ \"anomalies\": [] }";
+        // Sanitize markdown
+        content = content.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+        let response;
+        try {
+          response = JSON.parse(content);
+        } catch (e) {
+          console.error("Scanner parse error", e);
+          response = { anomalies: [] };
+        }
+
+        return {
+          anomalies: response.anomalies || []
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Failed to scan code",
+        });
+      }
     }),
 
   proactiveScan: publicProcedure
     .input(z.object({
-        projectPath: z.string(),
-        language: z.enum(["en", "es"]).optional(),
+      projectPath: z.string(),
+      language: z.enum(["en", "es"]).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-        // 1. MOCK FILE SELECTION (In real app, we'd list files and pick one)
-        // For now, we simulate finding a specific "smelly" file or pattern
-        const scenarios = [
-            {
-                file: "src/components/Button.tsx",
-                code: "const Button = (props: any) => <button {...props} />",
-                issue: "Usage of 'any' type in core component."
-            },
-            {
-                file: "src/utils/helpers.ts",
-                code: "export const formatDate = (d: Date) => d.toString() // TODO: Fix locale",
-                issue: "Lazy date formatting."
-            },
-            {
-                file: "src/server/api/routers/post.ts",
-                code: "const data = await ctx.db.query('SELECT * FROM posts')",
-                issue: "Raw SQL query without validation."
-            }
-        ];
-        
-        const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
-        const langKey = (input.language || (ctx.language === 'es' ? 'es' : 'en'));
+      // 1. MOCK FILE SELECTION (In real app, we'd list files and pick one)
+      // For now, we simulate finding a specific "smelly" file or pattern
+      const scenarios = [
+        {
+          file: "src/components/Button.tsx",
+          code: "const Button = (props: any) => <button {...props} />",
+          issue: "Usage of 'any' type in core component."
+        },
+        {
+          file: "src/utils/helpers.ts",
+          code: "export const formatDate = (d: Date) => d.toString() // TODO: Fix locale",
+          issue: "Lazy date formatting."
+        },
+        {
+          file: "src/server/api/routers/post.ts",
+          code: "const data = await ctx.db.query('SELECT * FROM posts')",
+          issue: "Raw SQL query without validation."
+        }
+      ];
 
-        const systemPrompt = langKey === 'es'
-          ? `Eres el MOTOR DE BUCLE DOOM.
+      const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+      const langKey = (input.language || (ctx.language === 'es' ? 'es' : 'en'));
+
+      const systemPrompt = langKey === 'es'
+        ? `Eres el MOTOR DE BUCLE DOOM.
              Tu trabajo es encontrar código y sugerir una "Misión de Arreglo" inmediata.
              
              Archivo Actual: ${scenario.file}
@@ -139,7 +154,7 @@ export const scannerRouter = createTRPCRouter({
                 "file": "${scenario.file}",
                 "suggestedAction": "Descripción de lo que harás."
              }`
-          : `You are the DOOM LOOP ENGINE.
+        : `You are the DOOM LOOP ENGINE.
              Your job is to find code and suggest an immediate "Fix Mission".
              
              Current File: ${scenario.file}
@@ -153,17 +168,36 @@ export const scannerRouter = createTRPCRouter({
                 "suggestedAction": "Description of what you will do."
              }`;
 
+      let ai;
+      try {
+        ai = await getAIClient(ctx.session?.user?.id ?? "1", ctx.db);
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: error.message || "AI configuration error",
+        });
+      }
+
+      const { client: openai, model } = ai;
+
+      try {
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "system", content: systemPrompt }],
-            response_format: { type: "json_object" },
+          model: model,
+          messages: [{ role: "system", content: systemPrompt }],
+          response_format: { type: "json_object" },
         });
 
         const content = JSON.parse(completion.choices[0].message.content || "{}");
-        
+
         return {
-            ...content,
-            id: Math.random().toString(36).substring(7)
+          ...content,
+          id: Math.random().toString(36).substring(7)
         };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Failed to proactively scan",
+        });
+      }
     }),
 });

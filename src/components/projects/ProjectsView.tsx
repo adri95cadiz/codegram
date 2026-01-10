@@ -30,6 +30,7 @@ import { SignInButton } from "../auth/SignInButton";
 
 interface ProjectsViewProps {
     onOpenEditor?: (path: string) => void;
+    onOpenVibe?: (path: string) => void;
 }
 
 interface Mission {
@@ -39,7 +40,7 @@ interface Mission {
     xp: number;
 }
 
-export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
+export function ProjectsView({ onOpenEditor, onOpenVibe }: ProjectsViewProps) {
     const { t, language } = useLanguage();
     const { data: session, status } = useSession();
     const [selectedProject, setSelectedProject] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
 
     // Dialog State
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [newProject, setNewProject] = useState({ title: "", description: "", stack: "React", vibe: "Chill" });
+    const [newProject, setNewProject] = useState({ title: "", description: "", stack: "", vibe: "" });
     const [linkPath, setLinkPath] = useState("");
     const [cloneUrl, setCloneUrl] = useState("");
     const [targetFolder, setTargetFolder] = useState("");
@@ -98,7 +99,7 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
     const activeProject = projects?.find(p => String(p.id) === String(selectedProject));
 
     const { data: dbMissions, isLoading: loadingMissions } = api.missions.getByProject.useQuery(
-        { projectId: Number(selectedProject) },
+        { projectId: selectedProject! },
         { enabled: !!selectedProject }
     );
 
@@ -135,7 +136,7 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
 
     const createMission = api.missions.create.useMutation({
         onSuccess: () => {
-            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            utils.missions.getByProject.invalidate({ projectId: selectedProject! });
             setNewMissionTitle("");
             setNewMissionDesc("");
             setIsAddMissionOpen(false);
@@ -145,27 +146,27 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
 
     const acceptMission = api.missions.acceptMission.useMutation({
         onSuccess: () => {
-            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            utils.missions.getByProject.invalidate({ projectId: selectedProject! });
             toast.success("Mission accepted!");
         }
     });
 
     const rejectMission = api.missions.rejectMission.useMutation({
         onSuccess: () => {
-            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            utils.missions.getByProject.invalidate({ projectId: selectedProject! });
             toast.success("Mission rejected");
         }
     });
 
     const updateMissionProgress = api.missions.updateProgress.useMutation({
         onSuccess: () => {
-            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            utils.missions.getByProject.invalidate({ projectId: selectedProject! });
         }
     });
 
     const completeMission = api.missions.completeMission.useMutation({
         onSuccess: (data) => {
-            utils.missions.getByProject.invalidate({ projectId: Number(selectedProject) });
+            utils.missions.getByProject.invalidate({ projectId: selectedProject! });
             if (data.leveledUp) {
                 toast.success(`🎉 Mission Complete! +${data.xpGained} XP - Level Up! Now Level ${data.newLevel}!`);
             } else {
@@ -232,7 +233,7 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
         });
     };
 
-    const handleDelete = (e: React.MouseEvent, id: number) => {
+    const handleDelete = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
         deleteProject.mutate({ id });
     };
@@ -311,7 +312,7 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 text-[10px] font-mono whitespace-nowrap"
+                                    className="bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-zinc-800 hover:border-zinc-600 text-[10px] font-mono whitespace-nowrap"
                                     onClick={() => activeProject?.localPath && onOpenEditor?.(activeProject.localPath)}
                                     disabled={!activeProject?.localPath}
                                 >
@@ -320,16 +321,25 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 text-[10px] font-mono whitespace-nowrap"
+                                    className="bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-zinc-800 hover:border-zinc-600 text-[10px] font-mono whitespace-nowrap"
                                 >
                                     <Terminal className="w-3 h-3 mr-2" /> {t("mission_control.logs")}
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-purple-600/10 border-purple-500/20 text-purple-400 hover:bg-purple-600/20 text-[10px] hover:text-white font-mono whitespace-nowrap"
+                                    onClick={() => activeProject?.localPath && onOpenVibe?.(activeProject.localPath)}
+                                    disabled={!activeProject?.localPath}
+                                >
+                                    <Zap className="w-3 h-3 mr-2 fill-current" /> VIBE CODING
                                 </Button>
                                 <Dialog open={isAddMissionOpen} onOpenChange={setIsAddMissionOpen}>
                                     <DialogTrigger asChild>
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="bg-green-600/10 border-green-500/20 text-green-400 hover:bg-green-600/20 text-[10px] font-mono whitespace-nowrap"
+                                            className="bg-green-600/10 border-green-500/20 text-green-400 hover:bg-green-600/20 text-[10px] hover:text-white font-mono whitespace-nowrap"
                                         >
                                             <Plus className="w-3 h-3 mr-2" /> New Mission
                                         </Button>
@@ -543,10 +553,10 @@ export function ProjectsView({ onOpenEditor }: ProjectsViewProps) {
                         <Tabs defaultValue="link" className="w-full">
                             <div className="px-6 mt-4">
                                 <TabsList className="grid w-full grid-cols-2 bg-zinc-900/50 p-1 rounded-full border border-zinc-800/50">
-                                    <TabsTrigger value="link" className="rounded-full data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider">
+                                    <TabsTrigger value="link" className="rounded-full text-zinc-500 data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider">
                                         <Folder className="w-3.5 h-3.5 mr-2" /> Local
                                     </TabsTrigger>
-                                    <TabsTrigger value="clone" className="rounded-full data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider">
+                                    <TabsTrigger value="clone" className="rounded-full text-zinc-500 data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider">
                                         <GitBranch className="w-3.5 h-3.5 mr-2" /> Git
                                     </TabsTrigger>
                                 </TabsList>

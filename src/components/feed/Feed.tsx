@@ -5,7 +5,7 @@ import { DiscoverFeed } from "./DiscoverFeed";
 import { EditorView } from "@/components/editor/EditorView";
 import { useLanguage } from "@/components/i18n/LanguageContext";
 
-export function Feed() {
+export function Feed({ onNavigateToProfile }: { onNavigateToProfile?: () => void }) {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const { t } = useLanguage();
     const handleOpenEditor = () => setIsEditorOpen(true);
@@ -16,7 +16,7 @@ export function Feed() {
 
             {/* Feed Content - Defaulting to Discover Feed as requested */}
             <div className="h-full w-full pt-0">
-                <DiscoverFeed onOpenEditor={handleOpenEditor} />
+                <DiscoverFeed onOpenEditor={handleOpenEditor} onNavigateToProfile={onNavigateToProfile} />
             </div>
         </div>
     );
